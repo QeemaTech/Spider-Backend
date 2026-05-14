@@ -15,12 +15,14 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $locale = app()->getLocale();
+
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->getLocalizedValue('name', $locale),
             'slug' => $this->slug,
             'thumb_image' => $this->main_image,
-            'description' => $this->description,
+            'description' => $this->getLocalizedValue('description', $locale),
             'discount' => $this->discount,
             'discount_type' => $this->discount_type,
             'is_active' => $this->is_active,
@@ -94,6 +96,17 @@ class ProductResource extends JsonResource
                 ];
             }),
         ];
+    }
+
+    private function getLocalizedValue(string $field, string $locale): mixed
+    {
+        $value = $this->{$field};
+
+        if (is_array($value)) {
+            return $value[$locale] ?? $value['en'] ?? reset($value) ?? null;
+        }
+
+        return $value;
     }
 
     /**

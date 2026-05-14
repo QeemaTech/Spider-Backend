@@ -24,7 +24,11 @@ class UpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('product')->id ?? null;
+        $routeProduct = $this->route('product');
+        $productId = is_object($routeProduct) ? ($routeProduct->id ?? null) : null;
+        if (! $productId) {
+            $productId = $this->route('id');
+        }
 
         return [
             'type' => ['sometimes', 'required', 'string', Rule::in(['simple', 'variable'])],

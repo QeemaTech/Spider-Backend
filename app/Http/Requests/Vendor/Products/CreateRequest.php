@@ -46,6 +46,32 @@ class CreateRequest extends FormRequest
             'categories.*' => ['integer', 'exists:categories,id'],
             'images' => ['nullable', 'array'],
             'images.*' => ['image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+
+            // Simple product branch stock distribution
+            'branch_stocks' => ['nullable', 'array'],
+            'branch_stocks.*' => ['nullable', 'integer', 'min:0'],
+
+            // Variable product variations
+            'variations' => ['nullable', 'array'],
+            'variations.*.name' => ['nullable', 'array'],
+            'variations.*.name.en' => ['nullable', 'string', 'max:255'],
+            'variations.*.name.ar' => ['nullable', 'string', 'max:255'],
+            'variations.*.sku' => ['nullable', 'string', 'max:255'],
+            'variations.*.price' => ['nullable', 'numeric', 'min:0'],
+            'variations.*.thumbnail' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:5120'],
+            'variations.*.values' => ['nullable', 'array'],
+            'variations.*.values.*.variant_id' => ['required_with:variations.*.values.*.option_id', 'integer', 'exists:variants,id'],
+            'variations.*.values.*.option_id' => ['required_with:variations.*.values.*.variant_id', 'integer', 'exists:variant_options,id'],
+            'variations.*.branch_stocks' => ['nullable', 'array'],
+            'variations.*.branch_stocks.*' => ['nullable', 'integer', 'min:0'],
+
+            // Product relations
+            'related_products' => ['nullable', 'array'],
+            'related_products.*' => ['integer', 'exists:products,id'],
+            'cross_sell_products' => ['nullable', 'array'],
+            'cross_sell_products.*' => ['integer', 'exists:products,id'],
+            'upsell_products' => ['nullable', 'array'],
+            'upsell_products.*' => ['integer', 'exists:products,id'],
         ];
     }
 
