@@ -7,12 +7,16 @@ use App\Http\Requests\Api\Auth\LoginRequest;
 use App\Http\Requests\Api\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\Vendor;
 use App\Models\Verification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -60,6 +64,60 @@ class AuthController extends Controller
                 'user' => new UserResource($user),
             ],
         ], 201);
+    }
+
+    public function vedorRegister(Request $request): JsonResponse
+    {
+        $request->validate([
+            'owner_name' => ['required', 'string', 'max:255'],
+            'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class . ',email'],
+            'owner_password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'owner_phone' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'array'],
+            'name.*' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:3072'],
+        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->owner_name,
+                'email' => $request->owner_email,
+                'phone' => $request->owner_phone,
+                'password' => Hash::make($request->owner_password),
+                'role' => 'vendor',
+                'is_active' => true,
+                'is_verified' => false,
+            ]);
+
+            $user->assignRole('vendor');
+
+            $vendor = Vendor::create([
+                'slug' => Str::slug($request->name['en']),
+                'owner_id' => $user->id,
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'image' => $request->image,
+                'commission_percentage' => setting('commission_percentage'),
+            ]);
+            DB::commit();
+
+            $user->sendEmailVerificationNotification();
+            event(new Registered($user));
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Registration successful. Please verify your account before logging in.'),
+                'data' => [
+                    'user' => new UserResource($user),
+                ],
+            ], 201);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
 
     /**

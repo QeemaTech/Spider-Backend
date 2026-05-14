@@ -15,6 +15,16 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ResetPasswordController;
 use App\Http\Controllers\Api\SliderController;
 use App\Http\Controllers\Api\VendorController;
+use App\Http\Controllers\Api\Vendor\BranchController as VendorBranchController;
+use App\Http\Controllers\Api\Vendor\CategoryController as VendorCategoryController;
+use App\Http\Controllers\Api\Vendor\HomeController as VendorHomeController;
+use App\Http\Controllers\Api\Vendor\OrderController as VendorOrderController;
+use App\Http\Controllers\Api\Vendor\ProductController as VendorProductController;
+use App\Http\Controllers\Api\Vendor\ReportController as ApiVendorReportController;
+use App\Http\Controllers\Api\Vendor\VendorRatingController as ApiVendorRatingController;
+use App\Http\Controllers\Api\Vendor\VendorTimeSlotController as ApiVendorTimeSlotController;
+use App\Http\Controllers\Api\Vendor\VariantController as ApiVendorVariantController;
+use App\Http\Controllers\Api\Vendor\WalletController as ApiVendorWalletController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,6 +39,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public routes with rate limiting
+// vendor register
+Route::post('auth/vendor/register', [AuthController::class, 'vedorRegister'])->name('api.vendor.register');
+
 Route::post('/auth/register', [AuthController::class, 'register'])
     ->middleware('throttle:5,1')
     ->name('api.register');
@@ -176,6 +189,35 @@ Route::group(['middleware' => 'locale'], function () {
         Route::post('vendors/{vendor}/report', [ReportController::class, 'reportVendor'])
             ->middleware('throttle:5,1')
             ->name('api.vendors.report');
+
+        // vendor (mobile dashboard) - isolated from user and delivery flows
+        Route::prefix('vendor')->middleware('vendor.user')->group(function () {
+            Route::get('home', [VendorHomeController::class, 'index'])->name('api.vendor.home.index');
+            Route::get('reports/summary', [ApiVendorReportController::class, 'summary'])->name('api.vendor.reports.summary');
+            Route::get('variants', [ApiVendorVariantController::class, 'index'])->name('api.vendor.variants.index');
+            Route::get('categories', [VendorCategoryController::class, 'index'])->name('api.vendor.categories.index');
+            Route::get('branches', [VendorBranchController::class, 'index'])->name('api.vendor.branches.index');
+            Route::get('branches/{id}', [VendorBranchController::class, 'show'])->name('api.vendor.branches.show');
+
+            Route::get('products', [VendorProductController::class, 'index'])->name('api.vendor.products.index');
+            Route::post('products', [VendorProductController::class, 'store'])->name('api.vendor.products.store');
+            Route::get('products/{id}', [VendorProductController::class, 'show'])->name('api.vendor.products.show');
+            Route::put('products/{id}', [VendorProductController::class, 'update'])->name('api.vendor.products.update');
+            Route::delete('products/{id}', [VendorProductController::class, 'destroy'])->name('api.vendor.products.destroy');
+            Route::post('products/{id}/toggle-active', [VendorProductController::class, 'toggleActive'])->name('api.vendor.products.toggle-active');
+            Route::get('ratings', [ApiVendorRatingController::class, 'index'])->name('api.vendor.ratings.index');
+            Route::get('wallet', [ApiVendorWalletController::class, 'index'])->name('api.vendor.wallet.index');
+            Route::post('wallet/withdrawals', [ApiVendorWalletController::class, 'requestWithdrawal'])->name('api.vendor.wallet.withdrawals.store');
+            Route::get('time-slots', [ApiVendorTimeSlotController::class, 'index'])->name('api.vendor.time-slots.index');
+            Route::post('time-slots', [ApiVendorTimeSlotController::class, 'store'])->name('api.vendor.time-slots.store');
+            Route::put('time-slots/{timeSlot}', [ApiVendorTimeSlotController::class, 'update'])->name('api.vendor.time-slots.update');
+            Route::delete('time-slots/{timeSlot}', [ApiVendorTimeSlotController::class, 'destroy'])->name('api.vendor.time-slots.destroy');
+
+            Route::get('orders', [VendorOrderController::class, 'index'])->name('api.vendor.orders.index');
+            Route::get('orders/{id}', [VendorOrderController::class, 'show'])->name('api.vendor.orders.show');
+            Route::post('orders/{id}/update-status', [VendorOrderController::class, 'updateStatus'])->name('api.vendor.orders.update-status');
+            Route::get('orders/{id}/invoice', [VendorOrderController::class, 'invoice'])->name('api.vendor.orders.invoice');
+        });
     });
 
     // Category routes

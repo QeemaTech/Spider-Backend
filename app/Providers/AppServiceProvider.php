@@ -42,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
 
         VerifyEmail::toMailUsing(function ($notifiable, $code) {
             return (new MailMessage)
+                ->from((string) config('mail.from.address'), (string) config('app.name'))
                 ->subject('Email Verification Code')
                 ->view('emails.verify-code', [
                     'code' => $code,

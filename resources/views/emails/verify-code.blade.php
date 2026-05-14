@@ -15,7 +15,7 @@
                 <!-- Header -->
                 <tr>
                     <td style="background:#0d6efd; padding:20px; text-align:center; color:#ffffff;">
-                        <h2 style="margin:0;">{{ setting('app_name') }}</h2>
+                        <h2 style="margin:0;">{{ config('app.name') }}</h2>
                         <p style="margin:5px 0 0; font-size:14px;">Email Verification</p>
                     </td>
                 </tr>
@@ -59,7 +59,7 @@
                 <!-- Footer -->
                 <tr>
                     <td style="background:#f8f9fa; padding:15px; text-align:center; font-size:12px; color:#999;">
-                        © {{ date('Y') }} {{ setting('app_name') }}. All rights reserved.
+                        &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
                     </td>
                 </tr>
 
@@ -71,3 +71,4 @@
 
 </body>
 </html>
+
