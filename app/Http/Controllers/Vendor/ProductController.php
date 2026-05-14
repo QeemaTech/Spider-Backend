@@ -51,6 +51,14 @@ class ProductController extends Controller
     }
 
     /**
+     * Check whether a product belongs to the authenticated vendor.
+     */
+    protected function productBelongsToVendor(Product $product, Vendor $vendor): bool
+    {
+        return (int) $product->vendor_id === (int) $vendor->id;
+    }
+
+    /**
      * Display a listing of the vendor's products.
      */
     public function index(): View|JsonResponse
@@ -173,7 +181,7 @@ class ProductController extends Controller
         }
 
         // Ensure the product belongs to this vendor
-        if ($product->vendor_id !== $vendor->id) {
+        if (! $this->productBelongsToVendor($product, $vendor)) {
             abort(403, __('You do not have permission to view this product.'));
         }
 
@@ -206,7 +214,7 @@ class ProductController extends Controller
         }
 
         // Ensure the product belongs to this vendor
-        if ($product->vendor_id !== $vendor->id) {
+        if (! $this->productBelongsToVendor($product, $vendor)) {
             abort(403, __('You do not have permission to edit this product.'));
         }
 
@@ -348,7 +356,7 @@ class ProductController extends Controller
             }
 
             // Ensure the product belongs to this vendor
-            if ($product->vendor_id !== $vendor->id) {
+            if (! $this->productBelongsToVendor($product, $vendor)) {
                 abort(403, __('You do not have permission to update this product.'));
             }
 
@@ -404,7 +412,7 @@ class ProductController extends Controller
             }
 
             // Ensure the product belongs to this vendor
-            if ($product->vendor_id !== $vendor->id) {
+            if (! $this->productBelongsToVendor($product, $vendor)) {
                 abort(403, __('You do not have permission to delete this product.'));
             }
 
@@ -448,7 +456,7 @@ class ProductController extends Controller
             }
 
             // Ensure the product belongs to this vendor
-            if ($product->vendor_id !== $vendor->id) {
+            if (! $this->productBelongsToVendor($product, $vendor)) {
                 return response()->json([
                     'success' => false,
                     'message' => __('You do not have permission to update this product.'),
@@ -486,7 +494,7 @@ class ProductController extends Controller
             }
 
             // Ensure the product belongs to this vendor
-            if ($product->vendor_id !== $vendor->id) {
+            if (! $this->productBelongsToVendor($product, $vendor)) {
                 return response()->json([
                     'success' => false,
                     'message' => __('You do not have permission to update this product.'),
@@ -558,7 +566,7 @@ class ProductController extends Controller
             }
 
             // Ensure the product belongs to this vendor
-            if ($product->vendor_id !== $vendor->id) {
+            if (! $this->productBelongsToVendor($product, $vendor)) {
                 return response()->json([
                     'success' => false,
                     'message' => __('You do not have permission to update this product.'),
