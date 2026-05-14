@@ -1,0 +1,14 @@
+[24-Apr-2026 03:16:07 UTC] PHP Fatal error:  Uncaught RuntimeException: Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.3.0". You are running 8.2.30. in /home/backendpro/spider.backendpro.site/vendor/composer/platform_check.php:26
+Stack trace:
+#0 /home/backendpro/spider.backendpro.site/vendor/composer/autoload_real.php(25): require()
+#1 /home/backendpro/spider.backendpro.site/vendor/autoload.php(22): ComposerAutoloaderInit8e71125543d024b83aa123bcc2e4964e::getLoader()
+#2 /home/backendpro/spider.backendpro.site/public/index.php(14): require('/home/backendpr...')
+#3 {main}
+  thrown in /home/backendpro/spider.backendpro.site/vendor/composer/platform_check.php on line 26
+[24-Apr-2026 15:15:01 UTC] PHP Fatal error:  Uncaught RuntimeException: Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.3.0". You are running 8.2.30. in /home/backendpro/spider.backendpro.site/vendor/composer/platform_check.php:26
+Stack trace:
+#0 /home/backendpro/spider.backendpro.site/vendor/composer/autoload_real.php(25): require()
+#1 /home/backendpro/spider.backendpro.site/vendor/autoload.php(22): ComposerAutoloaderInit8e71125543d024b83aa123bcc2e4964e::getLoader()
+#2 /home/backendpro/spider.backendpro.site/public/index.php(14): require('/home/backendpr...')
+#3 {main}
+  thrown in /home/backendpro/spider.backendpro.site/vendor/composer/platform_check.php on line 26
