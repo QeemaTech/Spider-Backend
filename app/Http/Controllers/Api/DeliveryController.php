@@ -54,6 +54,72 @@ class DeliveryController extends Controller
     }
 
     /**
+     * Get wallet balance summary for the current delivery driver.
+     */
+    public function walletBalance(): JsonResponse
+    {
+        $delivery = $this->delivery();
+
+        $pendingBalance = (float) DeliveryAssignment::query()
+            ->where('delivery_id', $delivery->id)
+            ->whereIn('status', ['assigned', 'picking_up', 'in_transit'])
+            ->sum('shipping_cost');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'balance' => round((float) $delivery->wallet, 2),
+                'currency' => 'EGP',
+                'pending_balance' => round($pendingBalance, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Get delivery driver stats summary.
+     */
+    public function stats(): JsonResponse
+    {
+        $delivery = $this->delivery();
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $endOfMonth = $now->copy()->endOfMonth();
+
+        $totalOrders = (int) DeliveryAssignment::query()
+            ->where('delivery_id', $delivery->id)
+            ->count();
+
+        $completedOrders = (int) DeliveryAssignment::query()
+            ->where('delivery_id', $delivery->id)
+            ->where('status', 'delivered')
+            ->count();
+
+        $totalEarnings = (float) DeliveryAssignment::query()
+            ->where('delivery_id', $delivery->id)
+            ->where('status', 'delivered')
+            ->sum('shipping_cost');
+
+        $thisMonthEarnings = (float) DeliveryAssignment::query()
+            ->where('delivery_id', $delivery->id)
+            ->where('status', 'delivered')
+            ->whereBetween('delivered_at', [$startOfMonth, $endOfMonth])
+            ->sum('shipping_cost');
+
+        $daysSinceJoining = (int) $delivery->created_at->diffInDays($now);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_orders' => $totalOrders,
+                'completed_orders' => $completedOrders,
+                'total_earnings' => round($totalEarnings, 2),
+                'this_month_earnings' => round($thisMonthEarnings, 2),
+                'days_since_joining' => $daysSinceJoining,
+            ],
+        ]);
+    }
+
+    /**
      * List orders ready for delivery (filtered by driver's zones when assigned).
      */
     public function ordersReady(Request $request): JsonResponse
