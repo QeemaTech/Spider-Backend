@@ -162,6 +162,8 @@ Route::group(['middleware' => 'locale'], function () {
         // delivery (driver) – requires delivery.user middleware
         Route::prefix('delivery')->middleware('delivery.user')->group(function () {
             Route::get('wallet/history', [DeliveryController::class, 'walletHistory'])->name('api.delivery.wallet.history');
+            Route::get('wallet/balance', [DeliveryController::class, 'walletBalance'])->name('api.delivery.wallet.balance');
+            Route::get('stats', [DeliveryController::class, 'stats'])->name('api.delivery.stats');
             Route::get('orders-ready', [DeliveryController::class, 'ordersReady'])->name('api.delivery.orders-ready');
             Route::get('orders-ready/{order}', [DeliveryController::class, 'showOrderReady'])->name('api.delivery.orders-ready.show');
             Route::post('orders-ready/{order}/assign', [DeliveryController::class, 'assign'])->name('api.delivery.assign');
