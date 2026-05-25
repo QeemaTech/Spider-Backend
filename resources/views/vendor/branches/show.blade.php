@@ -81,6 +81,16 @@
                             <p class="mb-0">{{ $branch->address }}</p>
                         </div>
 
+                        @if($branch->image)
+                            <div class="mb-3">
+                                <label class="form-label text-muted">{{ __('Branch Image') }}</label>
+                                <div>
+                                    <img src="{{ asset('storage/' . $branch->image) }}" alt="{{ __('Branch image') }}"
+                                        class="img-thumbnail" style="max-height: 180px;">
+                                </div>
+                            </div>
+                        @endif
+
                         @if($branch->phone)
                             <div class="mb-3">
                                 <label class="form-label text-muted">{{ __('Phone') }}</label>
