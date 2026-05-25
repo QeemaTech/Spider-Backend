@@ -41,7 +41,7 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('admin.branches.store') }}" method="POST" id="branchForm">
+                        <form action="{{ route('admin.branches.store') }}" method="POST" enctype="multipart/form-data" id="branchForm">
                             @csrf
 
                             <div class="row">
@@ -106,6 +106,16 @@
                                         @error('phone')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="image" class="form-label">{{ __('Branch Image') }}</label>
+                                        <input type="file" class="form-control @error('image') is-invalid @enderror"
+                                            id="image" name="image" accept="image/*">
+                                        @error('image')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="text-muted">{{ __('Optional image for this branch.') }}</small>
                                     </div>
                                 </div>
 

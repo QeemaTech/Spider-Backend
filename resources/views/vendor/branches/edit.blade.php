@@ -41,7 +41,7 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('vendor.branches.update', $branch) }}" method="POST" id="branchForm">
+                        <form action="{{ route('vendor.branches.update', $branch) }}" method="POST" enctype="multipart/form-data" id="branchForm">
                             @csrf
                             @method('PUT')
 
@@ -92,6 +92,23 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+
+                                    <div class="mb-3">
+                                        <label for="image" class="form-label">{{ __('Branch Image') }}</label>
+                                        <input type="file" class="form-control @error('image') is-invalid @enderror"
+                                            id="image" name="image" accept="image/*">
+                                        @error('image')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="text-muted">{{ __('Leave empty to keep current image.') }}</small>
+                                    </div>
+
+                                    @if($branch->image)
+                                        <div class="mb-3">
+                                            <img src="{{ asset('storage/' . $branch->image) }}" alt="{{ __('Branch image') }}"
+                                                class="img-thumbnail" style="max-height: 140px;">
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Right Column -->

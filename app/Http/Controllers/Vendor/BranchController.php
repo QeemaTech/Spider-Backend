@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Services\BranchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class BranchController extends Controller
@@ -87,6 +88,10 @@ class BranchController extends Controller
                 'phone' => $request->phone,
                 'is_active' => $request->boolean('is_active', true),
             ];
+
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('branches', 'public');
+            }
 
             $this->branchService->createBranch($data);
 
@@ -168,7 +173,16 @@ class BranchController extends Controller
                 'is_active' => $request->boolean('is_active'),
             ];
 
+            $oldImage = $branch->image;
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('branches', 'public');
+            }
+
             $this->branchService->updateBranch($branch, $data);
+
+            if (! empty($data['image']) && $oldImage && Storage::disk('public')->exists($oldImage)) {
+                Storage::disk('public')->delete($oldImage);
+            }
 
             return redirect()->route('vendor.branches.index')
                 ->with('success', __('Branch updated successfully.'));
@@ -197,7 +211,12 @@ class BranchController extends Controller
                 abort(403, __('You do not have permission to delete this branch.'));
             }
 
+            $imagePath = $branch->image;
             $this->branchService->deleteBranch($branch);
+
+            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
 
             return redirect()->route('vendor.branches.index')
                 ->with('success', __('Branch deleted successfully.'));
