@@ -17,6 +17,7 @@ class Branch extends Model
         'latitude',
         'longitude',
         'phone',
+        'image',
         'is_active',
     ];
 

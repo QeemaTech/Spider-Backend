@@ -266,7 +266,7 @@ class OrderService
         $allowedTransitions = [
             'pending' => ['processing', 'cancelled'],
             'processing' => ['ready_for_pickup', 'shipped', 'cancelled'],
-            'ready_for_pickup' => [],
+            'ready_for_pickup' => ['shipped', 'cancelled'],
             'shipped' => ['delivered', 'cancelled'],
             'delivered' => [],
             'cancelled' => [],

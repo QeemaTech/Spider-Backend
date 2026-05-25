@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -323,5 +324,173 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ],
         ], 200);
+    }
+
+     public function updateVendorOwnerData(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $vendor = $user?->vendor();
+
+        if (! $vendor) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Vendor not found.'),
+            ], 404);
+        }
+
+        if (! $user->hasRole('admin') && (int) $vendor->owner_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Only vendor owner can update vendor profile.'),
+            ], 403);
+        }
+
+        $owner = $vendor->owner;
+        if (! $owner) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Vendor owner not found.'),
+            ], 404);
+        }
+
+        $request->validate([
+            'owner_name' => ['required', 'string', 'max:255'],
+            'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$owner->id],
+            'owner_phone' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:3072'],
+        ]);
+
+        DB::beginTransaction();
+        $newImagePath = null;
+        $oldImagePath = $owner->getRawOriginal('image');
+
+        try {
+            if ($request->hasFile('image')) {
+                $newImagePath = $request->file('image')->store('users', 'public');
+            }
+
+            $ownerData = [
+                'name' => $request->owner_name,
+                'email' => $request->owner_email,
+                'phone' => $request->owner_phone,
+            ];
+
+            if ($newImagePath) {
+                $ownerData['image'] = $newImagePath;
+            }
+
+            $owner->update($ownerData);
+
+            if ($newImagePath && $oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            DB::commit();
+
+            $owner->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Vendor owner data updated successfully.'),
+                'data' => [
+                    'owner' => new UserResource($owner),
+                ],
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            if ($newImagePath && Storage::disk('public')->exists($newImagePath)) {
+                Storage::disk('public')->delete($newImagePath);
+            }
+
+            throw $th;
+        }
+    }
+
+    public function updateVendorData(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $vendor = $user?->vendor();
+
+        if (! $vendor) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Vendor not found.'),
+            ], 404);
+        }
+
+        if (! $user->hasRole('admin') && (int) $vendor->owner_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Only vendor owner can update vendor profile.'),
+            ], 403);
+        }
+
+        $request->validate([
+            'name' => ['required', 'array'],
+            'name.*' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:3072'],
+        ]);
+
+        DB::beginTransaction();
+        $newImagePath = null;
+        $oldImagePath = $vendor->getRawOriginal('image');
+
+        try {
+            if ($request->hasFile('image')) {
+                $newImagePath = $request->file('image')->store('vendors', 'public');
+            }
+
+            $slug = $vendor->slug;
+            if (! empty($request->name['en'])) {
+                $baseSlug = Str::slug($request->name['en']);
+                $slug = $baseSlug;
+                $counter = 1;
+
+                while (Vendor::where('slug', $slug)->where('id', '!=', $vendor->id)->exists()) {
+                    $slug = $baseSlug.'-'.$counter;
+                    $counter++;
+                }
+            }
+
+            $vendorData = [
+                'slug' => $slug,
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+            ];
+
+            if ($newImagePath) {
+                $vendorData['image'] = $newImagePath;
+            }
+
+            $vendor->update($vendorData);
+
+            if ($newImagePath && $oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
+            DB::commit();
+
+            $vendor->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Vendor data updated successfully.'),
+                'data' => [
+                    'vendor' => $vendor,
+                ],
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            if ($newImagePath && Storage::disk('public')->exists($newImagePath)) {
+                Storage::disk('public')->delete($newImagePath);
+            }
+
+            throw $th;
+        }
     }
 }

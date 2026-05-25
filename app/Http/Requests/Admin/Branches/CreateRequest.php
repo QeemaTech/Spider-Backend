@@ -31,6 +31,7 @@ class CreateRequest extends FormRequest
             'latitude' => ['nullable', 'string', 'max:50'],
             'longitude' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:3072'],
             'is_active' => ['boolean'],
         ];
     }

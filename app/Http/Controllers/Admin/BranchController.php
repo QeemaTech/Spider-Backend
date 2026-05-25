@@ -10,6 +10,7 @@ use App\Services\BranchService;
 use App\Services\VendorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class BranchController extends Controller
@@ -76,6 +77,10 @@ class BranchController extends Controller
                 'is_active' => $request->boolean('is_active', true),
             ];
 
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('branches', 'public');
+            }
+
             $this->service->createBranch($data);
 
             return redirect()->route('admin.branches.index')
@@ -125,7 +130,16 @@ class BranchController extends Controller
                 'is_active' => $request->boolean('is_active'),
             ];
 
+            $oldImage = $branch->image;
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('branches', 'public');
+            }
+
             $this->service->updateBranch($branch, $data);
+
+            if (! empty($data['image']) && $oldImage && Storage::disk('public')->exists($oldImage)) {
+                Storage::disk('public')->delete($oldImage);
+            }
 
             return redirect()->route('admin.branches.index')
                 ->with('success', __('Branch updated successfully.'));
@@ -142,7 +156,12 @@ class BranchController extends Controller
     public function destroy(Branch $branch): RedirectResponse|JsonResponse
     {
         try {
+            $imagePath = $branch->image;
             $this->service->deleteBranch($branch);
+
+            if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
